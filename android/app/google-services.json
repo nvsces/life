@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "918776183639",
+    "project_id": "financial-accounting-2c0a2",
+    "storage_bucket": "financial-accounting-2c0a2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918776183639:android:2c2ba3a03abd622ab89c12",
+        "android_client_info": {
+          "package_name": "com.nvsces.financial"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "918776183639-pqkq0n0eho0emaab0hg4ohvpri2jf7ul.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWvEa7rIWAfXB-S_TIyIoO3Q-rMXMog3g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "918776183639-pqkq0n0eho0emaab0hg4ohvpri2jf7ul.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
