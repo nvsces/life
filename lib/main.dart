@@ -22,10 +22,10 @@ class MyApp extends StatelessWidget {
     return AdaptiveTheme(
       light: kLightTheme,
       dark: kDarkTheme,
-      initial: AdaptiveThemeMode.dark,
+      initial: AdaptiveThemeMode.light,
       builder: (light, dark) => MaterialApp(
         theme: light,
-        darkTheme: dark,
+        darkTheme: light,
         localizationsDelegates: [
           S.delegate,
           GlobalMaterialLocalizations.delegate,

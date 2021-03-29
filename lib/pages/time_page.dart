@@ -1,8 +1,17 @@
 import 'dart:async';
 
+import 'package:financial_accounting/bloc/bloc_day_time/day_time_bloc.dart';
+import 'package:financial_accounting/bloc/bloc_day_time/day_time_event.dart';
+import 'package:financial_accounting/bloc/bloc_day_time/day_time_state.dart';
+import 'package:financial_accounting/models/chart_model.dart';
+import 'package:financial_accounting/models/day_time.dart';
+import 'package:financial_accounting/models/statistics_model.dart';
 import 'package:financial_accounting/models/task_managment.dart';
+import 'package:financial_accounting/screens/test_charst.dart';
 import 'package:financial_accounting/services/finantical_provider.dart';
+import 'package:financial_accounting/widgets/slidable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TimePage extends StatefulWidget {
   TimePage({Key key}) : super(key: key);
@@ -13,76 +22,35 @@ class TimePage extends StatefulWidget {
 
 class _TimePageState extends State<TimePage> {
   final FinanticalProvider _finanticalProvider = FinanticalProvider();
-  List<String> nameTask = [
-    'Работа',
-    'Универ',
-    'Учёба',
-    'Социальная сфера',
-    'Чтение книги',
-    'Просмотр филма',
-    'Диплом'
-  ];
-  List<TaskManagment> timeList = [];
-  //Duration duration = Duration();
 
-  _setTimeInit(int i) async {
-    TaskManagment taskm =
-        TaskManagment(nameTask[i], DateTime.now(), false, Duration());
-    await _finanticalProvider.setTime(taskm);
-  }
-
-  resetTime() {
-    for (int i = 0; i < timeList.length; i++) {
-      var dururation = timeList[i].currentDuration;
-      var tasktime =
-          TaskManagment(timeList[i].name, DateTime.now(), false, dururation);
-      _finanticalProvider.setTime(tasktime);
+  void dismissSlidableItem(SlidableAction action, int i) {
+    switch (action) {
+      case SlidableAction.delete:
+        context.read<BlocDayTime>().add(DeleteCategoryDayTimeEvent(i));
+        break;
+      default:
     }
   }
 
-  _setTime(int i) async {
-    resetTime();
-
-    TaskManagment task;
-    Duration duration;
-    duration = timeList[i].currentDuration;
-
-    if (!timeList[i].istime) {
-      task = TaskManagment(timeList[i].name, DateTime.now(), true, duration);
-    } else {
-      task = TaskManagment(timeList[i].name, DateTime.now(), false, duration);
+  List<ChartMode> createMode() {
+    List<ChartMode> rezult = [];
+    for (int i = 0; i < BlocDayTime.timeList.length; i++) {
+      var mode = ChartMode(BlocDayTime.timeList[i].name,
+          BlocDayTime.timeList[i].duration, barColors[i]);
+      rezult.add(mode);
     }
 
-    await _finanticalProvider.setTime(task);
-  }
-
-  loadTimes() async {
-    var stream = _finanticalProvider.getTimes();
-    stream.listen((times) {
-      setState(() {
-        timeList = times;
-      });
-    });
-  }
-
-  void initTaskManagment() {
-    for (int i = 0; i < nameTask.length; i++) {
-      timeList
-          .add(TaskManagment(nameTask[i], DateTime.now(), false, Duration()));
-    }
+    return rezult;
   }
 
   @override
   void initState() {
-    initTaskManagment();
-    loadTimes();
     Timer.periodic(Duration(seconds: 1), (timer) {
-      for (int i = 0; i < timeList.length; i++) {
-        if (timeList[i].istime) {
-          //timeList[i].time =
-          timeList[i].currentDuration =
-              DateTime.now().difference(timeList[i].time) +
-                  timeList[i].duration;
+      for (int i = 0; i < BlocDayTime.timeList.length; i++) {
+        if (BlocDayTime.timeList[i].istime) {
+          BlocDayTime.timeList[i].currentDuration =
+              DateTime.now().difference(BlocDayTime.timeList[i].time) +
+                  BlocDayTime.timeList[i].duration;
         }
       }
       setState(() {});
@@ -92,31 +60,54 @@ class _TimePageState extends State<TimePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        child: ListView.builder(
-            itemCount: timeList.length,
-            itemBuilder: (context, i) {
-              return ListTile(
-                onTap: () {
-                  _setTime(i);
-                },
-                title: Text(timeList[i].name),
-                subtitle:
-                    !timeList[i].istime ? Text('') : Text(timeList[i].name),
-                trailing: timeList[i].currentDuration != null
-                    ? Text(timeList[i].currentDuration.toString().split('.')[0])
-                    : Text(''),
-              );
-            }));
-    // child: ListView.builder(
-    //     itemCount: nameTask.length,
-    //     itemBuilder: (context, i) {
-    //       return ListTile(
-    //         onTap: () {
-    //           _setTimeInit(i);
-    //         },
-    //         title: Text(nameTask[i]),
-    //       );
-    //     }));
+    return BlocBuilder<BlocDayTime, DayTimeState>(
+      builder: (BuildContext context, state) {
+        if (state is DayTimeFirstState) {
+          context.read<BlocDayTime>().add(FirstDayTimeEvent());
+        }
+        if (state is DayTimeLoadedState) {
+          BlocDayTime.timeList = state.days.taskmanagments;
+        }
+        return Container(
+            child: Column(
+          children: [
+            RaisedButton(
+                child: Text('Статистика'),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (ctx) => TestCgarts(createMode())));
+                }),
+            Expanded(
+              child: ListView.builder(
+                  itemCount: BlocDayTime.timeList.length,
+                  itemBuilder: (context, i) {
+                    return Card(
+                      child: SlidableWidget(
+                        onDismissed: (action) => dismissSlidableItem(action, i),
+                        child: ListTile(
+                          onTap: () => context
+                              .read<BlocDayTime>()
+                              .add(PressTimerEvent(i)),
+                          title: Text(BlocDayTime.timeList[i].name),
+                          subtitle: !BlocDayTime.timeList[i].istime
+                              ? Text('')
+                              : Text(BlocDayTime.timeList[i].name),
+                          trailing:
+                              BlocDayTime.timeList[i].currentDuration != null
+                                  ? Text(BlocDayTime.timeList[i].currentDuration
+                                      .toString()
+                                      .split('.')[0])
+                                  : Text(''),
+                        ),
+                      ),
+                    );
+                  }),
+            ),
+          ],
+        ));
+      },
+    );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:financial_accounting/models/day_time.dart';
 import 'package:financial_accounting/models/expenses.dart';
+import 'package:financial_accounting/models/statistics_model.dart';
 import 'package:financial_accounting/models/task_managment.dart';
 import 'package:financial_accounting/models/task_model.dart';
 
@@ -39,15 +41,40 @@ class FinanticalProvider {
         data.docs.map((doc) => TaskModel.fromJson(doc.data())).toList());
   }
 
-  Future setTime(TaskManagment tskm) async {
-    CollectionReference taskC = FirebaseFirestore.instance.collection("time");
-    var doc = taskC.doc(tskm.name);
-    return await doc.set(tskm.toMap());
+  Future setDayTime(DayTime dayTime) async {
+    CollectionReference taskC =
+        FirebaseFirestore.instance.collection('daytime');
+    var doc = taskC.doc();
+    dayTime.doc = doc.id;
+    return await doc.set(dayTime.toMap());
   }
 
-  Stream<List<TaskManagment>> getTimes() {
-    CollectionReference taskC = FirebaseFirestore.instance.collection("time");
+  Stream<List<DayTime>> getDayTimeList() {
+    CollectionReference taskC =
+        FirebaseFirestore.instance.collection("daytime");
     return taskC.snapshots().map((QuerySnapshot data) =>
-        data.docs.map((doc) => TaskManagment.fromJson(doc.data())).toList());
+        data.docs.map((doc) => DayTime.fromJson(doc.data())).toList());
+  }
+
+  Stream<List<DayTime>> getStatistics() {
+    CollectionReference taskC =
+        FirebaseFirestore.instance.collection("daytime");
+    return taskC.snapshots().map((QuerySnapshot data) =>
+        data.docs.map((doc) => DayTime.fromJson(doc.data())).toList());
+  }
+
+  Stream<DayTime> getDayTime() {
+    CollectionReference taskC =
+        FirebaseFirestore.instance.collection("daytime");
+    return taskC
+        .snapshots()
+        .map((QuerySnapshot data) => DayTime.fromJson(data.docs.first.data()));
+  }
+
+  Future updateDayTime(DayTime dayTime) async {
+    CollectionReference taskC =
+        FirebaseFirestore.instance.collection('daytime');
+    var doc = taskC.doc(dayTime.doc);
+    return await doc.set(dayTime.toMap());
   }
 }
